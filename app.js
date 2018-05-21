@@ -1,6 +1,29 @@
 'use strict';
 
 searchButton.addEventListener('click', searchWeather);
+searchCity.addEventListener('input', autocomplete);
+var cityNames = [];
+
+
+function autocomplete(e) {
+    var value = e.target.value.trim();
+    var item;
+    var currentNames = [];
+    autocompleteBlock.innerHTML = '';
+    for (var i = 0; i < cityNames.length; i++) {
+        if (value.toUpperCase() === cityNames[i].substr(0, value.length).toUpperCase()) {
+            currentNames.push(cityNames[i]);
+            item = document.createElement('div');
+            item.textContent = cityNames[i];
+            item.setAttribute('id', 'city' + i);
+            item.addEventListener('click', function() {
+                console.log(this.textContent);
+            });
+            autocompleteBlock.appendChild(item);
+        }
+    }
+    console.log(currentNames);
+}
 
 function loadCityList() {
     var http = new XMLHttpRequest();
@@ -10,7 +33,6 @@ function loadCityList() {
     http.onreadystatechange = function () {
         if (http.readyState === XMLHttpRequest.DONE && http.status === 200) {
             var data = JSON.parse(http.responseText);
-            var cityNames = [];
             for (var i = 0; i < data.length; i++) {
                 cityNames.push(data[i].capital);
             }
