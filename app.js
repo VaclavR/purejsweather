@@ -1,8 +1,25 @@
 'use strict';
 
-searchButton.addEventListener('click', searchWeather);
+searchButton.addEventListener('click', function () {
+    searchWeather();
+});
 searchCity.addEventListener('input', autocomplete);
 var cityNames = [];
+var firstRun = true;
+
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'http://api.db-ip.com/v2/free/self');
+xhr.onload = function() {
+    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+        var data = JSON.parse(xhr.responseText);
+        console.log(data);
+        searchWeather(data.city);
+    }
+    else {
+        console.log('Request failed.  Returned status of ' + xhr.status);
+    }
+};
+xhr.send();
 
 
 function autocomplete(e) {
@@ -36,7 +53,6 @@ function loadCityList() {
             for (var i = 0; i < data.length; i++) {
                 cityNames.push(data[i].capital);
             }
-            console.log(cityNames);
         }
     };
     http.send();
@@ -44,14 +60,24 @@ function loadCityList() {
 
 loadCityList();
 
-function searchWeather() {
+function searchWeather(city) {
+   city = city || false;
+   
+   if (!city && !firstRun) {
+       var cityName = searchCity.value;
+       if (cityName.trim().length === 0) {
+           return alert('Please enter a city name');
+       }
+   } else if (!city && firstRun) {
+       return;
+   } else {
+       var cityName = city;
+       firstRun = false;
+   }
+
    loadText.style.display = 'block';
    weatherBox.style.display = 'none';
-   
-   var cityName = searchCity.value;
-   if (cityName.trim().length === 0) {
-       return alert('Please enter a city name');
-   }
+
    var http = new XMLHttpRequest();
    var apiKey = '90daeb6a0170e2403ce8ef744515da66';
    var url = 'http://api.openweathermap.org/data/2.5/weather?q=' + cityName + '&appid=' + apiKey;
@@ -70,7 +96,7 @@ function searchWeather() {
             weatherDescription.textContent = weatherData.description;
             weatherTemperature .textContent = weatherData.temperature;
        } else if (http.readyState === XMLHttpRequest.DONE && http.status !== 200) {
-           alert('Error');
+           console.log('Error');
        }
    };
    http.send();
